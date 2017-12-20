@@ -21,7 +21,7 @@ To install this package, start R and enter:
 
 __Tutorial__:
 
-For instructions on how to use BiFET, please see the guide: [http://htmlpreview.github.io/?https://github.com/UcarLab/BiFET/blob/master/vignettes/A%20Guide%20to%20using%20BiFET.html] (Tutorial)
+For instructions on how to use BiFET, please see the guide: [Tutorial](http://htmlpreview.github.io/?https://github.com/UcarLab/BiFET/blob/master/vignettes/A%20Guide%20to%20using%20BiFET.html)
 
 __Disclaimer of Warranties and Liabilities__
 

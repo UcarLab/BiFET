@@ -1,0 +1,188 @@
+---
+title: "A Guide to using BiFET"
+author: "Ahrim Youn"
+date: '`r Sys.Date()`'
+output:
+  rmarkdown::html_document:
+    toc: yes
+    toc_depth: 6
+  pdf_document:
+    toc: yes
+vignette: >
+  %\VignetteIndexEntry{"A Guide to using BiFET"}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+`BiFET` (Bias-free Footprint Enrichment Test) aims to identify TFs whose
+footprints are over-represented in target regions compared to background 
+regions after correcting for differences in read counts and GC contents between
+target and background regions, where regions represent ATAC-seq or DNAse-seq
+peaks. In this example, we used BiFET to detect TFs associated with
+cell-specific open chromatin regions by analyzing ATAC-seq data from
+human PBMCs (Ucar, et al., 2017) and pancreatic islets (Khetan, et al., 2017).
+
+In order to use `BiFET`, the user will need two text files. 
+
+* The first file is a peak file
+* The second file is an output matrix of footprint calls from
+PIQ or CENTIPEDE algorithm
+
+## 1. Obtaining a Peak File
+
+A matrix of ATAC-seq or DNase-seq peaks whose first column is the chromosome
+number, the second and third column are the starting and ending position
+of the peak, the fourth and fifth column are the read counts and GC content
+of the peak and the sixth column is the type of the 
+peak ("target","background","no"):
+
+```{r, eval=TRUE, echo=TRUE}
+# Load necessary libraries
+suppressPackageStartupMessages(library(BiFET))
+library(BiFET)
+peak_file <- system.file("extdata", "islet_PBMC_consensus_peak.Rdata",
+                         package = "BiFET")
+load(peak_file)
+
+# Display the first few rows and columns of the matrix
+head(peaks)
+
+```
+
+In this example, the file *islet_PBMC_consensus_peak.Rdata* was obtained
+as follows: we used ATAC-seq data obtained from five human PBMC
+*(Ucar, et al., 2017)* and five human islet samples *(Khetan, et al., 2017)*
+and called peaks using **MACS version 2.1.0** *(Zhang, et al., 2008)* with
+parameters **-nomodel -f BAMPE**. The peak sets from all samples were merged
+to generate one consensus peak set (N = 57,108 peaks) by using
+**R package DiffBind_2.2.5**. *(Ross-Innes, et al., 2012)*, where only the peaks
+present at least in any two samples were included in the analysis. 
+We used the **summits** option to re-center each peak around the point of
+greatest enrichment and obtained consensus peaks of same width **(200bp)**. 
+
+Out of these consensus peaks, we defined regions that are specifically
+accessible in PBMC samples as regions where at least 4 PBMC samples have
+a peak, whereas none of the islet samples have a peak 
+(n=4106 peaks; these regions are used as target regions in this example). 
+Similarly, we defined islet-specific peaks as those that were called as 
+a peak in at least 4 islet samples but none in any of the 
+PBMC samples (n=12886 peaks). The rest of the peaks excluding the 
+PBMC/islet-specific peaks were used as the background
+(i.e., non-specific) peaks in our analyses (n=40116 peaks). For each peak,
+GC content was obtained using peak annotation program 
+**annotatePeaks.pl** from the **HOMER** software *(Heinz. et al., 2010)*.
+
+## 2. Obtaining a Matrix of Footprint Calls
+
+```{r, eval=TRUE, echo=TRUE}
+# Load necessary libraries
+suppressPackageStartupMessages(library(BiFET))
+library(BiFET)
+footprints <- system.file("extdata", "PBMC_PIQ.bed",
+                         package = "BiFET")
+PBMCmotif <- read.delim(footprints, header = FALSE)
+
+# Display the first few rows and columns of the matrix
+head(PBMCmotif)
+
+```
+
+In this example, TF footprints were called using **PIQ** algorithm
+*(Sherwood, et al., 2014)* using the pooled islet samples and pooled PBMC
+samples to increase the detection power for TF footprints. We used only the
+TF footprints that have a purity score greater than 0.9. The example file
+*PBMC_PIQ.bed* contains footprint calls for only five PWMs from the
+JASPAR database to reduce computing time.
+
+## 3. Calculating enrichment p-value
+
+The function `calculate_enrich_p` calculates p-value testing if footprints
+of a TF are over-represented in the target set of peaks compared to the
+background set of peaks correcting for the bias arising from the imbalance
+of GC-content and read counts between target and background set. The following
+input parameter values are needed for `calculate_enrich_p`.
+
+1. Matrix of footprint calls.
+
+We process the output matrix of footprint calls from PIQ or CENTIPEDE
+for use in `calculate_enrich_p` by removing the suffix ".RC" in the id of PWM
+detected on the reverse strand and redundant counts of the same PWM
+on the same location.
+
+```{r, eval=FALSE, echo=TRUE}
+PBMCmotif <- motif_processing(PBMCmotif)
+```
+
+2. TF binding matrix.
+
+Using the output motif matrix from the above step, we generate a TF binding
+matrix M where i_th row represents i_th PWM and j_th column represetns j_th
+peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and
+0 otherwise. 
+```{r, eval=FALSE, echo=TRUE}
+TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
+```
+
+3. A vector of read counts per peak.
+```{r, eval=FALSE, echo=TRUE}
+reads <- peaks[, "reads"]
+```
+
+4. A vector of GC contents per peak.
+```{r, eval=FALSE, echo=TRUE}
+GCcontent <- peaks[, "GCcontent"]
+```
+
+5. A vector of peak IDs belonging to the target set.
+```{r, eval=FALSE, echo=TRUE}
+targetpeak <- which(peaks[, "peaktype"] == "target")
+```
+
+6. A vector of peak IDs belonging to the background set.
+```{r, eval=FALSE, echo=TRUE}
+backgroundpeak <- which(peaks[, "peaktype"] == "background")
+```
+
+Finally, the function `calculate_enrich_p` returns a list of parameter
+alpha_k, enrichment p values from BiFET algorithm and enrichment p values
+from the hypergeometric test.
+```{r, eval=FALSE, echo=TRUE}
+result <- calculate_enrich_p(TFbinding.mat, reads, GCcontent,
+                             targetpeak, backgroundpeak)
+```
+ 
+---
+
+## 4. References
+
+1. Khetan, S., et al. Chromatin accessibility profiling uncovers genetic-and
+T2D disease state-associated changes in cis-regulatory element use in human
+islets. bioRxiv 2017:192922.
+
+2. Ross-Innes, C.S., et al. Differential oestrogen receptor binding is
+associated with clinical outcome in breast cancer. 
+Nature 2012;481(7381):389-393.
+
+3. Ucar, D., et al. The chromatin accessibility signature of human immune
+aging stems from CD8+ T cells. Journal of Experimental Medicine 2017:jem.
+20170416.
+
+4. Sherwood, et al. “Discovery of Directional and Nondirectional Pioneer
+Transcription Factors by Modeling DNase Profile Magnitude and Shape.”
+Nature Biotechnology 32, no. 2 (February 2014): 171.
+
+5. Heinz, et al. “Simple Combinations of Lineage-Determining Transcription
+Factors Prime Cis-Regulatory Elements Required for Macrophage and B Cell 
+Identities.” Molecular Cell 38, no. 4 (May 28, 2010): 576–89. 
+
+6. Zhang, et al. “Model-Based Analysis of ChIP-Seq (MACS).” 
+Genome Biology 9 (2008): R137. 
+
+7. Ross-Innes, et al. “Differential Oestrogen Receptor Binding Is Associated
+with Clinical Outcome in Breast Cancer.” Nature 481, no. 7381 
+(January 19, 2012): 389–93. 
+
+
+

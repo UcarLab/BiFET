@@ -1,0 +1,33 @@
+Package: BiFET
+Type: Package
+Title: Bias-free Footprint Enrichment Test
+Version: 0.1.0
+Date: 2017-12-19
+Authors@R: c(person("Ahrim", "Youn", email = "Ahrim.Youn@jax.org",
+    role = c("aut", "cre")), person("Eladio", "Marquez",
+    email = "Eladio.Marquez@jax.org", role = c("aut")), 
+    person("Nathan",  "Lawlor", email = "nathan.lawlor03@gmail.com", 
+    role = c("aut")), person("Michael", "Stitzel",
+    email = "Michael.Stitzel@jax.org", role = c("aut")),person("Duygu",
+    "Ucar", email = "Duygu.Ucar@jax.org", role = c("aut")))
+Maintainer: Ahrim Youn <Ahrim.Youn@jax.org>
+Description: BiFET identifies TFs whose footprints are over-represented in
+    target regions compared to background regions after correcting for the
+    bias arising from the imbalance in read counts and GC contents between
+    the target and background regions. For a given TF k, BiFET tests the null
+    hypothesis that the target regions have the same probability of having
+    footprints for the TF k as the background regions while correcting for
+    the read count and GC content bias. For this, we use the number of target
+    regions with footprints for TF k, t_k as a test statistic and calculate
+    the p-value as the probability of observing t_k or more target regions
+    with footprints under the null hypothesis.
+License: GPL-3
+biocViews: Genetics, Epigenetics, Transcription, GeneRegulation,
+    ATACSeq, DNaseSeq, Software
+Encoding: UTF-8
+LazyData: true
+Imports:
+    poibin, stats
+RoxygenNote: 6.0.1
+Suggests: testthat, knitr
+VignetteBuilder: knitr

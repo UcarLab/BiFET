@@ -15,6 +15,7 @@ __Installation:__
 To install this package, start R and enter:
 
 `library(devtools)`
+
 `devtools::install_github("UcarLab/BiFET")`
 
 

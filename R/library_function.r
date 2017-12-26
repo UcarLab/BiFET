@@ -1,77 +1,39 @@
-#' Function to reformat the output matrix of footprint calls from
-#'  PIQ or CENTIPEDE for use in BiFET
-#' @param motif an output matrix of footprint calls from PIQ or CENTIPEDE
-#'  algorithm where each row represents the location where each PWM
-#'   was detected, its ID, purity score from the algorithm and the strand: +/-
-#' @return Returns a matrix of footprint calls where the suffix ".RC" in the
-#'  id of PWM detected on the reverse strand is removed and redundant counts
-#'   of the same PWM on the same location are removed.
-#' @author Ahrim Youn
-#' @examples
-#' # Load in the output matrix of footprint calls from PIQ or CENTIPEDE
-#' footprints <- system.file("extdata",
-#' "PBMC_PIQ.bed", package = "BiFET")
-#' PBMCmotif <- read.delim(footprints, header = FALSE)
-#' # Process the output matrix of footprint calls from PIQ
-#' # or CENTIPEDE for use in BiFET
-#' PBMCmotif <- motif_processing(PBMCmotif)
-#' head(PBMCmotif)
-#' @export
-
-motif_processing <- function(motif) {
-    motif[, 4] <- removing_RC(motif[, 4])
-    motif <- motif[, -6]
-    motif <- unique(motif)
-    return(motif)
-}
-
 #' Function to generate a TF binding matrix M where i_th row represents
 #'  i_th PWM and j_th column represetns j_th peak with M_i, j=1 if the
 #'   footprint of i_th PWM overlaps j_th peak and 0 otherwise
-#' @param peaks A matrix of ATAC-seq or DNase-seq peak whose first column
-#'  is the chromosome number, the second and third column is the starting
-#'   and ending position of the peak.
-#' @param motif A matrix of footprint calls outputted from
-#' motif_processing function
+#' @param GRpeaks ATAC-seq or DNase-seq peaks in GRanges class where each row
+#' represents the location, read counts, GC content and type
+#' ("target","background","no") of the peak
+#' @param GRmotif Footprint calls from PIQ or CENTIPEDE algorithm in GRanges
+#' class where each row represents the location of each PWM occurrence and its
+#'  purity score from the algorithm. The footprint calls in the forward strand
+#'  and those in the backward strand from the same PWM are not differentiated.
 #' @return Returns a TF binding matrix M where i_th row represents i_th PWM
 #'  and j_th column represetns j_th peak with M_i, j=1 if the footprint of
 #'  i_th PWM overlaps j_th peak and 0 otherwise
-#' @seealso \code{\link{motif_processing}}
 #' @author Ahrim Youn
 #' @examples
-#' peak_file <- system.file("extdata",
-#' "islet_PBMC_consensus_peak.Rdata", package = "BiFET")
+#' # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+#' peak_file <- system.file("extdata", "input_peak_motif.Rdata",
+#'  package = "BiFET")
 #' load(peak_file)
-#' # Load in the output matrix of footprint calls from PIQ or CENTIPEDE
-#' footprints <- system.file("extdata",
-#' "PBMC_PIQ.bed", package = "BiFET")
-#' PBMCmotif <- read.delim(footprints, header = FALSE)
-#' # Process the output matrix of footprint calls from PIQ
-#' # or CENTIPEDE for use in BiFET
-#' PBMCmotif <- motif_processing(PBMCmotif)
 #' # Generate a TF binding matrix M where i_th row represents
 #' # i_th PWM and j_th column represetns j_th peak with M_i, j=1
 #' # if the footprint of i_th PWM overlaps j_th peak and 0 otherwise
-#' TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
-#' head(TFbinding.mat)
+#' TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
+#' TFbinding.mat[1:4, 1:4]
 #' @export
 
-bindingTF_per_peak <- function(peaks, motif) {
-    alltf <- unique(motif[, 4])
-    TFbinding.mat <- matrix(0, nrow = length(alltf), ncol = nrow(peaks))
-    rownames(TFbinding.mat) <- alltf
+bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 
-    for (i in 1:nrow(peaks)) {
-        print(paste("Peak ", i, " out of ", nrow(peaks), " peaks", sep = ""))
-        ipeak.motif <- motif[as.character(peaks[i, 1]) ==
-                               as.character(motif[, 1]), ]
-        overlap <- peaks[i, 2] < as.numeric(ipeak.motif[, 3]) & peaks[i, 3] >
-          as.numeric(ipeak.motif[, 2])
-        bindingtf <- unique(as.character(ipeak.motif[overlap, 4]))
-        TFbinding.mat[bindingtf, i] <- 1
-    }
-    TFbinding.mat <- TFbinding.mat[rowSums(TFbinding.mat) > 0, ]
-    return(TFbinding.mat)
+  singles <- split(GRmotif, names(GRmotif))
+  singles <- GenomicRanges::GRangesList(singles)
+  motifoverlap <- GenomicRanges::findOverlaps(singles, GRpeaks)
+  allTF <- names(singles)
+  TFbinding.mat <- matrix(0, nrow = length(allTF), ncol = length(GRpeaks))
+  rownames(TFbinding.mat) <- allTF
+  TFbinding.mat[as.matrix(motifoverlap)] <- 1
+  return(TFbinding.mat)
 }
 
 
@@ -92,35 +54,20 @@ bindingTF_per_peak <- function(peaks, motif) {
 #' @seealso \code{\link{bindingTF_per_peak}}
 #' @author Ahrim Youn
 #' @examples
-#' # Load in a peak file, a matrix of ATAC-seq or DNase-seq peak whose
-#' # first column is the chromosome number, the second and third column
-#' # are the starting and ending position of the peak, the fourth and
-#' # fifth column are the read counts and GC content of the peak and
-#' # the sixth column is the type of the peak: "target","background","no"
-#'
-#' # GC content of the peak was obtained using peak annotation program
-#' # "annotatePeaks.pl" from the HOMER software
 #' \dontrun{
-#' peak_file <- system.file("extdata",
-#' "islet_PBMC_consensus_peak.Rdata", package = "BiFET")
+#' # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+#' peak_file <- system.file("extdata", "input_peak_motif.Rdata",
+#'  package = "BiFET")
 #' load(peak_file)
-#'
-#' # Load in the output matrix of footprint calls from PIQ or CENTIPEDE
-#' footprints <- system.file("extdata",
-#' "PBMC_PIQ.bed", package = "BiFET")
-#' PBMCmotif <- read.delim(footprints, header = FALSE)
-#' # Process the output matrix of footprint calls from PIQ
-#' # or CENTIPEDE for use in BiFET
-#' PBMCmotif <- motif_processing(PBMCmotif)
 #' # Generate a TF binding matrix M where i_th row represents
 #' # i_th PWM and j_th column represetns j_th peak with M_i, j=1
 #' # if the footprint of i_th PWM overlaps j_th peak and 0 otherwise
-#' TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
+#' TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
 #' # Other input parameter values for the function calculate_enrich_p
-#' targetpeak <- which(peaks[, "peaktype"] == "target")
-#' backgroundpeak <- which(peaks[, "peaktype"] == "background")
-#' reads <- peaks[, "reads"]
-#' GCcontent <- peaks[, "GCcontent"]
+#' targetpeak <- which(GRpeaks$peaktype == "target")
+#' backgroundpeak <- which(GRpeaks$peaktype == "background")
+#' reads <- GRpeaks$reads
+#' GCcontent <- GRpeaks$GC
 #' result <- calculate_enrich_p(TFbinding.mat, reads,
 #'  GCcontent, targetpeak, backgroundpeak)
 #'  }

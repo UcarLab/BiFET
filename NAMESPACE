@@ -2,4 +2,3 @@
 
 export(bindingTF_per_peak)
 export(calculate_enrich_p)
-export(motif_processing)

@@ -6,15 +6,17 @@
  i_th PWM and j_th column represetns j_th peak with M_i, j=1 if the
   footprint of i_th PWM overlaps j_th peak and 0 otherwise}
 \usage{
-bindingTF_per_peak(peaks, motif)
+bindingTF_per_peak(GRpeaks, GRmotif)
 }
 \arguments{
-\item{peaks}{A matrix of ATAC-seq or DNase-seq peak whose first column
-is the chromosome number, the second and third column is the starting
- and ending position of the peak.}
+\item{GRpeaks}{ATAC-seq or DNase-seq peaks in GRanges class where each row
+represents the location, read counts, GC content and type
+("target","background","no") of the peak}
 
-\item{motif}{A matrix of footprint calls outputted from
-motif_processing function}
+\item{GRmotif}{Footprint calls from PIQ or CENTIPEDE algorithm in GRanges
+class where each row represents the location of each PWM occurrence and its
+ purity score from the algorithm. The footprint calls in the forward strand
+ and those in the backward strand from the same PWM are not differentiated.}
 }
 \value{
 Returns a TF binding matrix M where i_th row represents i_th PWM
@@ -27,24 +29,15 @@ Function to generate a TF binding matrix M where i_th row represents
   footprint of i_th PWM overlaps j_th peak and 0 otherwise
 }
 \examples{
-peak_file <- system.file("extdata",
-"islet_PBMC_consensus_peak.Rdata", package = "BiFET")
+# Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
+ package = "BiFET")
 load(peak_file)
-# Load in the output matrix of footprint calls from PIQ or CENTIPEDE
-footprints <- system.file("extdata",
-"PBMC_PIQ.bed", package = "BiFET")
-PBMCmotif <- read.delim(footprints, header = FALSE)
-# Process the output matrix of footprint calls from PIQ
-# or CENTIPEDE for use in BiFET
-PBMCmotif <- motif_processing(PBMCmotif)
 # Generate a TF binding matrix M where i_th row represents
 # i_th PWM and j_th column represetns j_th peak with M_i, j=1
 # if the footprint of i_th PWM overlaps j_th peak and 0 otherwise
-TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
-head(TFbinding.mat)
-}
-\seealso{
-\code{\link{motif_processing}}
+TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
+TFbinding.mat[1:4, 1:4]
 }
 \author{
 Ahrim Youn

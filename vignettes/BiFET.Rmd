@@ -22,36 +22,41 @@ regions after correcting for differences in read counts and GC contents between
 target and background regions, where regions represent ATAC-seq or DNAse-seq
 peaks. In this example, we used BiFET to detect TFs associated with
 cell-specific open chromatin regions by analyzing ATAC-seq data from
-human PBMCs (Ucar, et al., 2017) and pancreatic islets (Khetan, et al., 2017).
+human PBMCs *(Ucar, et al., 2017)* and pancreatic islets
+*(Khetan, et al., 2017)*.
 
-In order to use `BiFET`, the user will need two text files. 
+In order to use `BiFET`, the user will need an input file with
+ two `GRanges` objects:
 
-* The first file is a peak file
-* The second file is an output matrix of footprint calls from
-PIQ or CENTIPEDE algorithm
+* The first object `GRpeaks` represents a matrix of ATAC-seq or DNase-seq
+peaks where each row represents the location, read counts,
+GC content (proportion of G/C) and type (one of “target”,”background”,”no”)
+of the peak. 
+* The second object `GRmotif` represents footprint calls from PIQ or
+CENTIPEDE algorithm in GRanges class where each row represents the location
+of each PWM occurrence and its purity score from the algorithm.     
 
 ## 1. Obtaining a Peak File
-
-A matrix of ATAC-seq or DNase-seq peaks whose first column is the chromosome
-number, the second and third column are the starting and ending position
-of the peak, the fourth and fifth column are the read counts and GC content
-of the peak and the sixth column is the type of the 
-peak ("target","background","no"):
 
 ```{r, eval=TRUE, echo=TRUE}
 # Load necessary libraries
 suppressPackageStartupMessages(library(BiFET))
+suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(BiocGenerics))
+suppressPackageStartupMessages(library(GenomeInfoDb))
+suppressPackageStartupMessages(library(IRanges))
+suppressPackageStartupMessages(library(S4Vectors))
 library(BiFET)
-peak_file <- system.file("extdata", "islet_PBMC_consensus_peak.Rdata",
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
                          package = "BiFET")
 load(peak_file)
 
 # Display the first few rows and columns of the matrix
-head(peaks)
+head(GRpeaks)
 
 ```
 
-In this example, the file *islet_PBMC_consensus_peak.Rdata* was obtained
+In this example, the file *input_peak_motif.Rdata* was obtained
 as follows: we used ATAC-seq data obtained from five human PBMC
 *(Ucar, et al., 2017)* and five human islet samples *(Khetan, et al., 2017)*
 and called peaks using **MACS version 2.1.0** *(Zhang, et al., 2008)* with
@@ -80,12 +85,12 @@ GC content was obtained using peak annotation program
 # Load necessary libraries
 suppressPackageStartupMessages(library(BiFET))
 library(BiFET)
-footprints <- system.file("extdata", "PBMC_PIQ.bed",
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
                          package = "BiFET")
-PBMCmotif <- read.delim(footprints, header = FALSE)
+load(peak_file)
 
 # Display the first few rows and columns of the matrix
-head(PBMCmotif)
+head(GRmotif)
 
 ```
 
@@ -104,55 +109,42 @@ background set of peaks correcting for the bias arising from the imbalance
 of GC-content and read counts between target and background set. The following
 input parameter values are needed for `calculate_enrich_p`.
 
-1. Matrix of footprint calls.
-
-We process the output matrix of footprint calls from PIQ or CENTIPEDE
-for use in `calculate_enrich_p` by removing the suffix ".RC" in the id of PWM
-detected on the reverse strand and redundant counts of the same PWM
-on the same location.
-
-```{r, eval=FALSE, echo=TRUE}
-PBMCmotif <- motif_processing(PBMCmotif)
-```
-
-2. TF binding matrix.
+1. TF binding matrix.
 
 Using the output motif matrix from the above step, we generate a TF binding
 matrix M where i_th row represents i_th PWM and j_th column represetns j_th
 peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and
 0 otherwise. 
-```{r, eval=FALSE, echo=TRUE}
-TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
-```
 
-3. A vector of read counts per peak.
-```{r, eval=FALSE, echo=TRUE}
-reads <- peaks[, "reads"]
-```
+```{r, eval=TRUE, echo=TRUE}
+# Load necessary libraries
+suppressPackageStartupMessages(library(BiFET))
+library(BiFET)
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
+                         package = "BiFET")
+load(peak_file)
+TFbinding.mat <- bindingTF_per_peak(GRpeaks,GRmotif)
 
-4. A vector of GC contents per peak.
-```{r, eval=FALSE, echo=TRUE}
-GCcontent <- peaks[, "GCcontent"]
-```
+# A vector of read counts per peak.
+reads <- GRpeaks$reads 
 
-5. A vector of peak IDs belonging to the target set.
-```{r, eval=FALSE, echo=TRUE}
-targetpeak <- which(peaks[, "peaktype"] == "target")
-```
+# A vector of GC contents per peak 
+GCcontent <- GRpeaks$GC
 
-6. A vector of peak IDs belonging to the background set.
-```{r, eval=FALSE, echo=TRUE}
-backgroundpeak <- which(peaks[, "peaktype"] == "background")
-```
+# A vector of peak IDs belonging to the target set
+targetpeak <- which(GRpeaks$peaktype == "target")
 
-Finally, the function `calculate_enrich_p` returns a list of parameter
-alpha_k, enrichment p values from BiFET algorithm and enrichment p values
-from the hypergeometric test.
-```{r, eval=FALSE, echo=TRUE}
+# A vector of peak IDs belonging to the background set
+backgroundpeak <- which(GRpeaks$peaktype == "background")
+
+#Finally, the function “calculate_enrich_p” returns a list of 
+# parameter alpha_k, enrichment p values from BiFET algorithm 
+  # and enrichment p values from the hypergeometric test :
 result <- calculate_enrich_p(TFbinding.mat, reads, GCcontent,
                              targetpeak, backgroundpeak)
+head(result)
 ```
- 
+
 ---
 
 ## 4. References

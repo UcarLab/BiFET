@@ -11,7 +11,7 @@
 
 <meta name="author" content="Ahrim Youn" />
 
-<meta name="date" content="2017-12-19" />
+<meta name="date" content="2017-12-26" />
 
 <title>A Guide to using BiFET</title>
 
@@ -121,7 +121,7 @@ $(document).ready(function () {
 
 <h1 class="title toc-ignore">A Guide to using BiFET</h1>
 <h4 class="author"><em>Ahrim Youn</em></h4>
-<h4 class="date"><em>2017-12-19</em></h4>
+<h4 class="date"><em>2017-12-26</em></h4>
 
 </div>
 
@@ -137,33 +137,49 @@ $(document).ready(function () {
 
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p><code>BiFET</code> (Bias-free Footprint Enrichment Test) aims to identify TFs whose footprints are over-represented in target regions compared to background regions after correcting for differences in read counts and GC contents between target and background regions, where regions represent ATAC-seq or DNAse-seq peaks. In this example, we used BiFET to detect TFs associated with cell-specific open chromatin regions by analyzing ATAC-seq data from human PBMCs (Ucar, et al., 2017) and pancreatic islets (Khetan, et al., 2017).</p>
-<p>In order to use <code>BiFET</code>, the user will need two text files.</p>
+<p><code>BiFET</code> (Bias-free Footprint Enrichment Test) aims to identify TFs whose footprints are over-represented in target regions compared to background regions after correcting for differences in read counts and GC contents between target and background regions, where regions represent ATAC-seq or DNAse-seq peaks. In this example, we used BiFET to detect TFs associated with cell-specific open chromatin regions by analyzing ATAC-seq data from human PBMCs <em>(Ucar, et al., 2017)</em> and pancreatic islets <em>(Khetan, et al., 2017)</em>.</p>
+<p>In order to use <code>BiFET</code>, the user will need an input file with two <code>GRanges</code> objects:</p>
 <ul>
-<li>The first file is a peak file</li>
-<li>The second file is an output matrix of footprint calls from PIQ or CENTIPEDE algorithm</li>
+<li>The first object <code>GRpeaks</code> represents a matrix of ATAC-seq or DNase-seq peaks where each row represents the location, read counts, GC content (proportion of G/C) and type (one of “target”,”background”,”no”) of the peak.</li>
+<li>The second object <code>GRmotif</code> represents footprint calls from PIQ or CENTIPEDE algorithm in GRanges class where each row represents the location of each PWM occurrence and its purity score from the algorithm.</li>
 </ul>
 </div>
 <div id="obtaining-a-peak-file" class="section level2">
 <h2>1. Obtaining a Peak File</h2>
-<p>A matrix of ATAC-seq or DNase-seq peaks whose first column is the chromosome number, the second and third column are the starting and ending position of the peak, the fourth and fifth column are the read counts and GC content of the peak and the sixth column is the type of the peak (“target”,“background”,“no”):</p>
 <pre class="r"><code># Load necessary libraries
 suppressPackageStartupMessages(library(BiFET))
+suppressPackageStartupMessages(library(GenomicRanges))
+suppressPackageStartupMessages(library(BiocGenerics))
+suppressPackageStartupMessages(library(GenomeInfoDb))
+suppressPackageStartupMessages(library(IRanges))
+suppressPackageStartupMessages(library(S4Vectors))
 library(BiFET)
-peak_file &lt;- system.file(&quot;extdata&quot;, &quot;islet_PBMC_consensus_peak.Rdata&quot;,
+peak_file &lt;- system.file(&quot;extdata&quot;, &quot;input_peak_motif.Rdata&quot;,
                          package = &quot;BiFET&quot;)
 load(peak_file)
 
 # Display the first few rows and columns of the matrix
-head(peaks)</code></pre>
-<pre><code>##   seqnames     start       end reads GCcontent peaktype
-## 1     chr5  89854368  89854568  18.4     0.700       no
-## 2    chr12 109027603 109027803 449.0     0.575   target
-## 3     chr8 102149556 102149756 360.2     0.525   target
-## 4     chr1 226850693 226850893 363.6     0.520   target
-## 5     chr7 142506550 142506750 427.0     0.555   target
-## 6     chr1 161039655 161039855 372.8     0.585   target</code></pre>
-<p>In this example, the file <em>islet_PBMC_consensus_peak.Rdata</em> was obtained as follows: we used ATAC-seq data obtained from five human PBMC <em>(Ucar, et al., 2017)</em> and five human islet samples <em>(Khetan, et al., 2017)</em> and called peaks using <strong>MACS version 2.1.0</strong> <em>(Zhang, et al., 2008)</em> with parameters <strong>-nomodel -f BAMPE</strong>. The peak sets from all samples were merged to generate one consensus peak set (N = 57,108 peaks) by using <strong>R package DiffBind_2.2.5</strong>. <em>(Ross-Innes, et al., 2012)</em>, where only the peaks present at least in any two samples were included in the analysis. We used the <strong>summits</strong> option to re-center each peak around the point of greatest enrichment and obtained consensus peaks of same width <strong>(200bp)</strong>.</p>
+head(GRpeaks)</code></pre>
+<pre><code>## GRanges object with 6 ranges and 3 metadata columns:
+##       seqnames                 ranges strand |     reads        GC
+##          &lt;Rle&gt;              &lt;IRanges&gt;  &lt;Rle&gt; | &lt;numeric&gt; &lt;numeric&gt;
+##   [1]     chr5 [ 89854368,  89854568]      * |      18.4     0.700
+##   [2]    chr12 [109027603, 109027803]      * |     449.0     0.575
+##   [3]     chr8 [102149556, 102149756]      * |     360.2     0.525
+##   [4]     chr1 [226850693, 226850893]      * |     363.6     0.520
+##   [5]     chr7 [142506550, 142506750]      * |     427.0     0.555
+##   [6]     chr1 [161039655, 161039855]      * |     372.8     0.585
+##       peaktype
+##       &lt;factor&gt;
+##   [1]       no
+##   [2]   target
+##   [3]   target
+##   [4]   target
+##   [5]   target
+##   [6]   target
+##   -------
+##   seqinfo: 24 sequences from an unspecified genome; no seqlengths</code></pre>
+<p>In this example, the file <em>input_peak_motif.Rdata</em> was obtained as follows: we used ATAC-seq data obtained from five human PBMC <em>(Ucar, et al., 2017)</em> and five human islet samples <em>(Khetan, et al., 2017)</em> and called peaks using <strong>MACS version 2.1.0</strong> <em>(Zhang, et al., 2008)</em> with parameters <strong>-nomodel -f BAMPE</strong>. The peak sets from all samples were merged to generate one consensus peak set (N = 57,108 peaks) by using <strong>R package DiffBind_2.2.5</strong>. <em>(Ross-Innes, et al., 2012)</em>, where only the peaks present at least in any two samples were included in the analysis. We used the <strong>summits</strong> option to re-center each peak around the point of greatest enrichment and obtained consensus peaks of same width <strong>(200bp)</strong>.</p>
 <p>Out of these consensus peaks, we defined regions that are specifically accessible in PBMC samples as regions where at least 4 PBMC samples have a peak, whereas none of the islet samples have a peak (n=4106 peaks; these regions are used as target regions in this example). Similarly, we defined islet-specific peaks as those that were called as a peak in at least 4 islet samples but none in any of the PBMC samples (n=12886 peaks). The rest of the peaks excluding the PBMC/islet-specific peaks were used as the background (i.e., non-specific) peaks in our analyses (n=40116 peaks). For each peak, GC content was obtained using peak annotation program <strong>annotatePeaks.pl</strong> from the <strong>HOMER</strong> software <em>(Heinz. et al., 2010)</em>.</p>
 </div>
 <div id="obtaining-a-matrix-of-footprint-calls" class="section level2">
@@ -171,53 +187,73 @@ head(peaks)</code></pre>
 <pre class="r"><code># Load necessary libraries
 suppressPackageStartupMessages(library(BiFET))
 library(BiFET)
-footprints &lt;- system.file(&quot;extdata&quot;, &quot;PBMC_PIQ.bed&quot;,
+peak_file &lt;- system.file(&quot;extdata&quot;, &quot;input_peak_motif.Rdata&quot;,
                          package = &quot;BiFET&quot;)
-PBMCmotif &lt;- read.delim(footprints, header = FALSE)
+load(peak_file)
 
 # Display the first few rows and columns of the matrix
-head(PBMCmotif)</code></pre>
-<pre><code>##     V1       V2       V3            V4  V5 V6
-## 1 chr1   948769   948783 MA01371 STAT1 933  +
-## 2 chr1  1552837  1552851 MA01371 STAT1 917  +
-## 3 chr1  8167019  8167033 MA01371 STAT1 914  +
-## 4 chr1  9400566  9400580 MA01371 STAT1 915  +
-## 5 chr1  9847920  9847934 MA01371 STAT1 980  +
-## 6 chr1 10002845 10002859 MA01371 STAT1 914  +</code></pre>
+head(GRmotif)</code></pre>
+<pre><code>## GRanges object with 6 ranges and 1 metadata column:
+##                 seqnames               ranges strand |     score
+##                    &lt;Rle&gt;            &lt;IRanges&gt;  &lt;Rle&gt; | &lt;integer&gt;
+##   MA01371 STAT1     chr1 [  948769,   948783]      * |       933
+##   MA01371 STAT1     chr1 [ 1552837,  1552851]      * |       917
+##   MA01371 STAT1     chr1 [ 8167019,  8167033]      * |       914
+##   MA01371 STAT1     chr1 [ 9400566,  9400580]      * |       915
+##   MA01371 STAT1     chr1 [ 9847920,  9847934]      * |       980
+##   MA01371 STAT1     chr1 [10002845, 10002859]      * |       914
+##   -------
+##   seqinfo: 24 sequences from an unspecified genome; no seqlengths</code></pre>
 <p>In this example, TF footprints were called using <strong>PIQ</strong> algorithm <em>(Sherwood, et al., 2014)</em> using the pooled islet samples and pooled PBMC samples to increase the detection power for TF footprints. We used only the TF footprints that have a purity score greater than 0.9. The example file <em>PBMC_PIQ.bed</em> contains footprint calls for only five PWMs from the JASPAR database to reduce computing time.</p>
 </div>
 <div id="calculating-enrichment-p-value" class="section level2">
 <h2>3. Calculating enrichment p-value</h2>
 <p>The function <code>calculate_enrich_p</code> calculates p-value testing if footprints of a TF are over-represented in the target set of peaks compared to the background set of peaks correcting for the bias arising from the imbalance of GC-content and read counts between target and background set. The following input parameter values are needed for <code>calculate_enrich_p</code>.</p>
 <ol style="list-style-type: decimal">
-<li>Matrix of footprint calls.</li>
-</ol>
-<p>We process the output matrix of footprint calls from PIQ or CENTIPEDE for use in <code>calculate_enrich_p</code> by removing the suffix “.RC” in the id of PWM detected on the reverse strand and redundant counts of the same PWM on the same location.</p>
-<pre class="r"><code>PBMCmotif &lt;- motif_processing(PBMCmotif)</code></pre>
-<ol start="2" style="list-style-type: decimal">
 <li>TF binding matrix.</li>
 </ol>
 <p>Using the output motif matrix from the above step, we generate a TF binding matrix M where i_th row represents i_th PWM and j_th column represetns j_th peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and 0 otherwise.</p>
-<pre class="r"><code>TFbinding.mat &lt;- bindingTF_per_peak(peaks, PBMCmotif)</code></pre>
-<ol start="3" style="list-style-type: decimal">
-<li>A vector of read counts per peak.</li>
-</ol>
-<pre class="r"><code>reads &lt;- peaks[, &quot;reads&quot;]</code></pre>
-<ol start="4" style="list-style-type: decimal">
-<li>A vector of GC contents per peak.</li>
-</ol>
-<pre class="r"><code>GCcontent &lt;- peaks[, &quot;GCcontent&quot;]</code></pre>
-<ol start="5" style="list-style-type: decimal">
-<li>A vector of peak IDs belonging to the target set.</li>
-</ol>
-<pre class="r"><code>targetpeak &lt;- which(peaks[, &quot;peaktype&quot;] == &quot;target&quot;)</code></pre>
-<ol start="6" style="list-style-type: decimal">
-<li>A vector of peak IDs belonging to the background set.</li>
-</ol>
-<pre class="r"><code>backgroundpeak &lt;- which(peaks[, &quot;peaktype&quot;] == &quot;background&quot;)</code></pre>
-<p>Finally, the function <code>calculate_enrich_p</code> returns a list of parameter alpha_k, enrichment p values from BiFET algorithm and enrichment p values from the hypergeometric test.</p>
-<pre class="r"><code>result &lt;- calculate_enrich_p(TFbinding.mat, reads, GCcontent,
+<pre class="r"><code># Load necessary libraries
+suppressPackageStartupMessages(library(BiFET))
+library(BiFET)
+peak_file &lt;- system.file(&quot;extdata&quot;, &quot;input_peak_motif.Rdata&quot;,
+                         package = &quot;BiFET&quot;)
+load(peak_file)
+TFbinding.mat &lt;- bindingTF_per_peak(GRpeaks,GRmotif)
+
+# A vector of read counts per peak.
+reads &lt;- GRpeaks$reads 
+
+# A vector of GC contents per peak 
+GCcontent &lt;- GRpeaks$GC
+
+# A vector of peak IDs belonging to the target set
+targetpeak &lt;- which(GRpeaks$peaktype == &quot;target&quot;)
+
+# A vector of peak IDs belonging to the background set
+backgroundpeak &lt;- which(GRpeaks$peaktype == &quot;background&quot;)
+
+#Finally, the function “calculate_enrich_p” returns a list of 
+# parameter alpha_k, enrichment p values from BiFET algorithm 
+  # and enrichment p values from the hypergeometric test :
+result &lt;- calculate_enrich_p(TFbinding.mat, reads, GCcontent,
                              targetpeak, backgroundpeak)</code></pre>
+<pre><code>## [1] &quot;PWM 1 out of 5 PWMs&quot;
+## [1] &quot;PWM 2 out of 5 PWMs&quot;
+## [1] &quot;PWM 3 out of 5 PWMs&quot;
+## [1] &quot;PWM 4 out of 5 PWMs&quot;
+## [1] &quot;PWM 5 out of 5 PWMs&quot;</code></pre>
+<pre class="r"><code>head(result)</code></pre>
+<pre><code>## $alpha_k
+## [1] 2.427267e-02 1.000000e+05 3.719759e-03 2.152872e-03 6.948648e-04
+## 
+## $p.bifet
+## MA01371 STAT1 MA01481 FOXA1  MA06461 GCM1  MA07081 MSX2 MA08081 TEAD3 
+##  3.624763e-03  1.183069e-03  9.589736e-01  1.000000e+00  7.929950e-08 
+## 
+## $p.hyper
+## MA01371 STAT1 MA01481 FOXA1  MA06461 GCM1  MA07081 MSX2 MA08081 TEAD3 
+##  1.141137e-08  5.923755e-04  8.122715e-01  1.000000e+00  0.000000e+00</code></pre>
 <hr />
 </div>
 <div id="references" class="section level2">

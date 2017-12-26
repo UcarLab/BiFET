@@ -3,18 +3,14 @@ library(BiFET)
 context(desc = "Calculate enrich p")
 
 # load peak file
-peak_file <- system.file("extdata", "islet_PBMC_consensus_peak.Rdata",
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
                          package = "BiFET")
 load(peak_file)
-peaks_sel <- peaks[1:5000,]
-footprints <- system.file("extdata", "PBMC_PIQ.bed", package = "BiFET")
-PBMCmotif <- read.delim(footprints, header = FALSE)
-PBMCmotif <- motif_processing(PBMCmotif)
-TFbinding.mat <- bindingTF_per_peak(peaks_sel, PBMCmotif)
-targetpeak <- which(peaks_sel[, "peaktype"] == "target")
-backgroundpeak <- which(peaks_sel[, "peaktype"] == "background")
-reads <- peaks_sel[, "reads"]
-GCcontent <- peaks_sel[, "GCcontent"]
+TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
+targetpeak <- which(GRpeaks$peaktype == "target")
+backgroundpeak <- which(GRpeaks$peaktype == "background")
+reads <- GRpeaks$reads
+GCcontent <- GRpeaks$GC
 
 test_that("correct object types",  {
   expect_type(object = reads, type = "double")

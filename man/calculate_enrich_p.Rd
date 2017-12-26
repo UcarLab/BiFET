@@ -34,35 +34,20 @@ Function to calculate p-value testing if footprints of a TF are
    GC-content and read counts between target and background set
 }
 \examples{
-# Load in a peak file, a matrix of ATAC-seq or DNase-seq peak whose
-# first column is the chromosome number, the second and third column
-# are the starting and ending position of the peak, the fourth and
-# fifth column are the read counts and GC content of the peak and
-# the sixth column is the type of the peak: "target","background","no"
-
-# GC content of the peak was obtained using peak annotation program
-# "annotatePeaks.pl" from the HOMER software
 \dontrun{
-peak_file <- system.file("extdata",
-"islet_PBMC_consensus_peak.Rdata", package = "BiFET")
+# Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+peak_file <- system.file("extdata", "input_peak_motif.Rdata",
+ package = "BiFET")
 load(peak_file)
-
-# Load in the output matrix of footprint calls from PIQ or CENTIPEDE
-footprints <- system.file("extdata",
-"PBMC_PIQ.bed", package = "BiFET")
-PBMCmotif <- read.delim(footprints, header = FALSE)
-# Process the output matrix of footprint calls from PIQ
-# or CENTIPEDE for use in BiFET
-PBMCmotif <- motif_processing(PBMCmotif)
 # Generate a TF binding matrix M where i_th row represents
 # i_th PWM and j_th column represetns j_th peak with M_i, j=1
 # if the footprint of i_th PWM overlaps j_th peak and 0 otherwise
-TFbinding.mat <- bindingTF_per_peak(peaks, PBMCmotif)
+TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
 # Other input parameter values for the function calculate_enrich_p
-targetpeak <- which(peaks[, "peaktype"] == "target")
-backgroundpeak <- which(peaks[, "peaktype"] == "background")
-reads <- peaks[, "reads"]
-GCcontent <- peaks[, "GCcontent"]
+targetpeak <- which(GRpeaks$peaktype == "target")
+backgroundpeak <- which(GRpeaks$peaktype == "background")
+reads <- GRpeaks$reads
+GCcontent <- GRpeaks$GC
 result <- calculate_enrich_p(TFbinding.mat, reads,
  GCcontent, targetpeak, backgroundpeak)
  }

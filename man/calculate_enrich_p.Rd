@@ -34,7 +34,6 @@ Function to calculate p-value testing if footprints of a TF are
    GC-content and read counts between target and background set
 }
 \examples{
-\dontrun{
 # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
 peak_file <- system.file("extdata", "input_peak_motif.Rdata",
  package = "BiFET")

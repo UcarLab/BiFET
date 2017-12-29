@@ -26,14 +26,14 @@
 
 bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 
-  singles <- split(GRmotif, names(GRmotif))
-  singles <- GenomicRanges::GRangesList(singles)
-  motifoverlap <- GenomicRanges::findOverlaps(singles, GRpeaks)
-  allTF <- names(singles)
-  TFbinding.mat <- matrix(0, nrow = length(allTF), ncol = length(GRpeaks))
-  rownames(TFbinding.mat) <- allTF
-  TFbinding.mat[as.matrix(motifoverlap)] <- 1
-  return(TFbinding.mat)
+    singles <- split(GRmotif, names(GRmotif))
+    singles <- GenomicRanges::GRangesList(singles)
+    motifoverlap <- GenomicRanges::findOverlaps(singles, GRpeaks)
+    allTF <- names(singles)
+    TFbinding.mat <- matrix(0, nrow = length(allTF), ncol = length(GRpeaks))
+    rownames(TFbinding.mat) <- allTF
+    TFbinding.mat[as.matrix(motifoverlap)] <- 1
+    return(TFbinding.mat)
 }
 
 
@@ -135,38 +135,38 @@ calculate_enrich_p_per_TF <- function(TFbinding.mat, reads,
 }
 
 main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
-  total_lik_old <- -Inf
-  total_lik_new <- -10 ^ 10
-  alpha <- alphainit
-  count <- 0
-  while (total_lik_old - total_lik_new < -10 ^ (-10) *
-         abs(total_lik_new) & count < 100) {
-      count <- count + 1
-      total_lik_old <- total_lik_new
+    total_lik_old <- -Inf
+    total_lik_new <- -10 ^ 10
+    alpha <- alphainit
+    count <- 0
+    while (total_lik_old - total_lik_new < -10 ^ (-10) *
+        abs(total_lik_new) & count < 100) {
+        count <- count + 1
+        total_lik_old <- total_lik_new
 
-      init <- min(sum(TFbinding.mat) / sum(f(reads, alpha, GCcontent)),
+        init <- min(sum(TFbinding.mat) / sum(f(reads, alpha, GCcontent)),
                   1 / max(f(reads, alpha, GCcontent)) - 10 ^ (-6))
 
-      temp <- stats::optim(init, fn = loglik_per_TF, gr = deriv_per_TF,
+        temp <- stats::optim(init, fn = loglik_per_TF, gr = deriv_per_TF,
               lower = 10 ^ (-16),
               upper = 1 / max(f(reads, alpha, GCcontent)) - 10 ^ (-10),
               method = "L-BFGS-B", reads = reads, alpha = alpha,
               GCcontent = GCcontent, TFbinding.mat = TFbinding.mat,
               control = list(fnscale = -1))
 
-      q <- temp$par
+        q <- temp$par
 
-      temp <- stats::optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
+        temp <- stats::optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
               lower = 10 ^ (-5) + max(0, (reads / (log(q * f0(GCcontent,
                     alpha[2]) + 2) - log(abs(q * f0(GCcontent, alpha[2]) -
                         2))))[q * f0(GCcontent, alpha[2]) > 2]),
               upper = Inf, method = "L-BFGS-B", alpha2 = alpha[2], qi = q,
               reads = reads, GCcontent = GCcontent,
               TFbinding.mat = TFbinding.mat, control = list(fnscale = -1))
-      alpha[1] <- temp$par
+        alpha[1] <- temp$par
 
-      if (GCcontent[1] != Inf) {
-          temp <- stats::optim(par = alpha[2],
+        if (GCcontent[1] != Inf) {
+            temp <- stats::optim(par = alpha[2],
                   fn = total_lik2, gr = total_deriv2,
                   lower = 10 ^ (-5) + max(0, (GCcontent / (log(q *
                       f0(reads, alpha[1]) + 2) - log(abs(q *
@@ -175,7 +175,7 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
                   upper = Inf, method = "L-BFGS-B", alpha1 = alpha[1],
                   qi = q, reads = reads, GCcontent = GCcontent,
                   TFbinding.mat = TFbinding.mat, control = list(fnscale = -1))
-          alpha[2] <- temp$par
+            alpha[2] <- temp$par
       }
 
       total_lik_new <- total_lik(alpha, q, reads, GCcontent, TFbinding.mat)
@@ -207,8 +207,8 @@ enrich_p <- function(reads, GCcontent, TFbinding.mat,
 
 
 removing_RC <- function(TF) {
-  TF <- as.vector(as.matrix(as.data.frame(strsplit(as.character(TF), ".RC"))))
-  return(TF)
+    TF <- as.vector(as.matrix(as.data.frame(strsplit(as.character(TF), ".RC"))))
+    return(TF)
 }
 
 f0 <- function(x, y) {
@@ -233,9 +233,9 @@ loglik_per_TF <- function(qi, reads, alpha, GCcontent, TFbinding.mat) {
     return(sum(log(qf) * TFbinding.mat + log(1 - qf) * (1 - TFbinding.mat)))
 }
 deriv_per_TF <- function(qi, reads, alpha, GCcontent, TFbinding.mat) {
-  f <- f(reads, alpha, GCcontent)
-  qf <- qi * f
-  return(sum(1 / qi * TFbinding.mat - f / (1 - qf) * (1 - TFbinding.mat)))
+    f <- f(reads, alpha, GCcontent)
+    qf <- qi * f
+    return(sum(1 / qi * TFbinding.mat - f / (1 - qf) * (1 - TFbinding.mat)))
 }
 
 total_lik <- function(alpha, qi, reads, GCcontent, TFbinding.mat) {

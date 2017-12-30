@@ -49,7 +49,6 @@ reads <- GRpeaks$reads
 GCcontent <- GRpeaks$GC
 result <- calculate_enrich_p(TFbinding.mat, reads,
  GCcontent, targetpeak, backgroundpeak)
- }
 }
 \seealso{
 \code{\link{bindingTF_per_peak}}

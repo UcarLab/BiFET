@@ -54,7 +54,6 @@ bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 #' @seealso \code{\link{bindingTF_per_peak}}
 #' @author Ahrim Youn
 #' @examples
-#' \dontrun{
 #' # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
 #' peak_file <- system.file("extdata", "input_peak_motif.Rdata",
 #'  package = "BiFET")
@@ -70,7 +69,6 @@ bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 #' GCcontent <- GRpeaks$GC
 #' result <- calculate_enrich_p(TFbinding.mat, reads,
 #'  GCcontent, targetpeak, backgroundpeak)
-#'  }
 #' @export
 
 calculate_enrich_p <- function(TFbinding.mat, reads,
@@ -105,7 +103,7 @@ calculate_enrich_p_per_TF <- function(TFbinding.mat, reads,
     GCbias.cutoff <- 0.05
     GCcontent.same <- stats::t.test(GCcontent[targetpeak],
             GCcontent[backgroundpeak[
-              !(backgroundpeak %in% targetpeak)]])$p.value > 0.01
+              !(backgroundpeak %in% targetpeak)]], "greater")$p.value > 0.01
 
     model <- stats::glm(TFbinding.mat[, backgroundpeak]~reads[backgroundpeak] +
                    GCcontent[backgroundpeak],

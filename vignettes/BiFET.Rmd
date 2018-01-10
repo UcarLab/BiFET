@@ -42,11 +42,8 @@ of each PWM occurrence and its purity score from the algorithm.
 # Load necessary libraries
 suppressPackageStartupMessages(library(BiFET))
 suppressPackageStartupMessages(library(GenomicRanges))
-suppressPackageStartupMessages(library(BiocGenerics))
-suppressPackageStartupMessages(library(GenomeInfoDb))
-suppressPackageStartupMessages(library(IRanges))
-suppressPackageStartupMessages(library(S4Vectors))
 library(BiFET)
+library(GenomicRanges)
 peak_file <- system.file("extdata", "input_peak_motif.Rdata",
                          package = "BiFET")
 load(peak_file)

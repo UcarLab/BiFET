@@ -14,9 +14,9 @@ __Installation:__
 
 To install this package, start R and enter:
 
-`library(devtools)`
+`source("https://bioconductor.org/biocLite.R")`
 
-`devtools::install_github("UcarLab/BiFET")`
+`biocLite("BiFET")`
 
 
 __Tutorial__:

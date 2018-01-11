@@ -146,19 +146,19 @@ Nature 2012;481(7381):389-393.
 aging stems from CD8+ T cells. Journal of Experimental Medicine 2017:jem.
 20170416.
 
-4. Sherwood, et al. “Discovery of Directional and Nondirectional Pioneer
-Transcription Factors by Modeling DNase Profile Magnitude and Shape.”
+4. Sherwood, et al. Discovery of Directional and Nondirectional Pioneer
+Transcription Factors by Modeling DNase Profile Magnitude and Shape.
 Nature Biotechnology 32, no. 2 (February 2014): 171.
 
-5. Heinz, et al. “Simple Combinations of Lineage-Determining Transcription
+5. Heinz, et al. Simple Combinations of Lineage-Determining Transcription
 Factors Prime Cis-Regulatory Elements Required for Macrophage and B Cell 
-Identities.” Molecular Cell 38, no. 4 (May 28, 2010): 576–89. 
+Identities. Molecular Cell 38, no. 4 (May 28, 2010): 576–89. 
 
-6. Zhang, et al. “Model-Based Analysis of ChIP-Seq (MACS).” 
+6. Zhang, et al. Model-Based Analysis of ChIP-Seq (MACS). 
 Genome Biology 9 (2008): R137. 
 
-7. Ross-Innes, et al. “Differential Oestrogen Receptor Binding Is Associated
-with Clinical Outcome in Breast Cancer.” Nature 481, no. 7381 
+7. Ross-Innes, et al. Differential Oestrogen Receptor Binding Is Associated
+with Clinical Outcome in Breast Cancer. Nature 481, no. 7381 
 (January 19, 2012): 389–93. 
 
 

@@ -48,7 +48,7 @@ peak_file <- system.file("extdata", "input_peak_motif.Rdata",
                          package = "BiFET")
 load(peak_file)
 
-# Display the first few rows and columns of the matrix
+# Display the first few rows and columns of the peak file
 head(GRpeaks)
 
 ```
@@ -79,14 +79,7 @@ GC content was obtained using peak annotation program
 ## 2. Obtaining a Matrix of Footprint Calls
 
 ```{r, eval=TRUE, echo=TRUE}
-# Load necessary libraries
-suppressPackageStartupMessages(library(BiFET))
-library(BiFET)
-peak_file <- system.file("extdata", "input_peak_motif.Rdata",
-                         package = "BiFET")
-load(peak_file)
-
-# Display the first few rows and columns of the matrix
+# Display the first few rows and columns of the motif file
 head(GRmotif)
 
 ```
@@ -114,12 +107,7 @@ peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and
 0 otherwise. 
 
 ```{r, eval=TRUE, echo=TRUE}
-# Load necessary libraries
-suppressPackageStartupMessages(library(BiFET))
-library(BiFET)
-peak_file <- system.file("extdata", "input_peak_motif.Rdata",
-                         package = "BiFET")
-load(peak_file)
+# call function to produce TF binding matrix
 TFbinding.mat <- bindingTF_per_peak(GRpeaks,GRmotif)
 
 # A vector of read counts per peak.

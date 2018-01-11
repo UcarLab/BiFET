@@ -28,6 +28,37 @@ Function to generate a TF binding matrix M where i_th row represents
  i_th PWM and j_th column represetns j_th peak with M_i, j=1 if the
   footprint of i_th PWM overlaps j_th peak and 0 otherwise
 }
+\details{
+In the example, the file input_peak_motif.Rdata was obtained
+as follows: we used ATAC-seq data obtained from five human PBMC
+(Ucar, et al., 2017) and five human islet samples (Khetan, et al., 2017)
+and called peaks using MACS version 2.1.0 (Zhang, et al., 2008) with
+parameters "-nomodel -f BAMPE". The peak sets from all samples were merged
+to generate one consensus peak set (N = 57,108 peaks) by using
+package DiffBind_2.2.5. (Ross-Innes, et al., 2012), where only the peaks
+present at least in any two samples were included in the analysis.
+We used the **summits** option to re-center each peak around the point of
+greatest enrichment and obtained consensus peaks of same width (200bp).
+
+Out of these consensus peaks, we defined regions that are specifically
+accessible in PBMC samples as regions where at least 4 PBMC samples have
+ a peak, whereas none of the islet samples have a peak
+ (n=4106 peaks; these regions are used as target regions in this example).
+Similarly, we defined islet-specific peaks as those that were called as
+a peak in at least 4 islet samples but none in any of the
+PBMC samples (n=12886 peaks). The rest of the peaks excluding the
+PBMC/islet-specific peaks were used as the background
+(i.e., non-specific) peaks in our analyses (n=40116 peaks). For each peak,
+GC content was obtained using peak annotation program
+annotatePeaks.pl from the HOMER software (Heinz. et al., 2010).
+
+In this example, TF footprints were called using PIQ algorithm
+(Sherwood, et al., 2014) using the pooled islet samples and pooled PBMC
+samples to increase the detection power for TF footprints. We used only the
+TF footprints that have a purity score greater than 0.9. The example file
+contains footprint calls for only five PWMs from the
+JASPAR database to reduce computing time.
+}
 \examples{
 # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
 peak_file <- system.file("extdata", "input_peak_motif.Rdata",

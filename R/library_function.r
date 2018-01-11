@@ -1,6 +1,9 @@
 #' Function to generate a TF binding matrix M where i_th row represents
 #'  i_th PWM and j_th column represetns j_th peak with M_i, j=1 if the
 #'   footprint of i_th PWM overlaps j_th peak and 0 otherwise
+#' @importFrom GenomicRanges GRangesList findOverlaps
+#' @importFrom stats quantile t.test binomial glm optim phyper
+#' @importFrom poibin ppoibin
 #' @param GRpeaks ATAC-seq or DNase-seq peaks in GRanges class where each row
 #' represents the location, read counts, GC content and type
 #' ("target","background","no") of the peak
@@ -12,6 +15,35 @@
 #'  and j_th column represetns j_th peak with M_i, j=1 if the footprint of
 #'  i_th PWM overlaps j_th peak and 0 otherwise
 #' @author Ahrim Youn
+#' @details In the example, the file input_peak_motif.Rdata was obtained
+#' as follows: we used ATAC-seq data obtained from five human PBMC
+#' (Ucar, et al., 2017) and five human islet samples (Khetan, et al., 2017)
+#' and called peaks using MACS version 2.1.0 (Zhang, et al., 2008) with
+#' parameters "-nomodel -f BAMPE". The peak sets from all samples were merged
+#' to generate one consensus peak set (N = 57,108 peaks) by using
+#' package DiffBind_2.2.5. (Ross-Innes, et al., 2012), where only the peaks
+#' present at least in any two samples were included in the analysis.
+#' We used the **summits** option to re-center each peak around the point of
+#' greatest enrichment and obtained consensus peaks of same width (200bp).
+#'
+#' Out of these consensus peaks, we defined regions that are specifically
+#' accessible in PBMC samples as regions where at least 4 PBMC samples have
+#'  a peak, whereas none of the islet samples have a peak
+#'  (n=4106 peaks; these regions are used as target regions in this example).
+#' Similarly, we defined islet-specific peaks as those that were called as
+#' a peak in at least 4 islet samples but none in any of the
+#' PBMC samples (n=12886 peaks). The rest of the peaks excluding the
+#' PBMC/islet-specific peaks were used as the background
+#' (i.e., non-specific) peaks in our analyses (n=40116 peaks). For each peak,
+#' GC content was obtained using peak annotation program
+#' annotatePeaks.pl from the HOMER software (Heinz. et al., 2010).
+#'
+#' In this example, TF footprints were called using PIQ algorithm
+#' (Sherwood, et al., 2014) using the pooled islet samples and pooled PBMC
+#' samples to increase the detection power for TF footprints. We used only the
+#' TF footprints that have a purity score greater than 0.9. The example file
+#' contains footprint calls for only five PWMs from the
+#' JASPAR database to reduce computing time.
 #' @examples
 #' # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
 #' peak_file <- system.file("extdata", "input_peak_motif.Rdata",
@@ -27,8 +59,8 @@
 bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 
     singles <- split(GRmotif, names(GRmotif))
-    singles <- GenomicRanges::GRangesList(singles)
-    motifoverlap <- GenomicRanges::findOverlaps(singles, GRpeaks)
+    singles <- GRangesList(singles)
+    motifoverlap <- findOverlaps(singles, GRpeaks)
     allTF <- names(singles)
     TFbinding.mat <- matrix(0, nrow = length(allTF), ncol = length(GRpeaks))
     rownames(TFbinding.mat) <- allTF
@@ -74,7 +106,7 @@ bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 calculate_enrich_p <- function(TFbinding.mat, reads,
                                GCcontent, targetpeak, backgroundpeak) {
     backgroundpeak <- c(targetpeak, backgroundpeak)
-    upperlimit <- stats::quantile(reads, 0.999)
+    upperlimit <- quantile(reads, 0.999)
     reads[reads > upperlimit] <- upperlimit
 
     q <- rep(NA, nrow(TFbinding.mat))
@@ -101,13 +133,13 @@ calculate_enrich_p <- function(TFbinding.mat, reads,
 calculate_enrich_p_per_TF <- function(TFbinding.mat, reads,
                         GCcontent, targetpeak, backgroundpeak) {
     GCbias.cutoff <- 0.05
-    GCcontent.same <- stats::t.test(GCcontent[targetpeak],
+    GCcontent.same <- t.test(GCcontent[targetpeak],
             GCcontent[backgroundpeak[
               !(backgroundpeak %in% targetpeak)]], "greater")$p.value > 0.01
 
-    model <- stats::glm(TFbinding.mat[, backgroundpeak]~reads[backgroundpeak] +
+    model <- glm(TFbinding.mat[, backgroundpeak]~reads[backgroundpeak] +
                    GCcontent[backgroundpeak],
-                   family = stats::binomial(link = "logit"))
+                   family = binomial(link = "logit"))
     GCcoef <- summary(model)$coef[3, ]
 
     if ( !GCcontent.same & GCcoef[1] > 0 & GCcoef[4] < GCbias.cutoff) {
@@ -145,7 +177,7 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
         init <- min(sum(TFbinding.mat) / sum(f(reads, alpha, GCcontent)),
                   1 / max(f(reads, alpha, GCcontent)) - 10 ^ (-6))
 
-        temp <- stats::optim(init, fn = loglik_per_TF, gr = deriv_per_TF,
+        temp <- optim(init, fn = loglik_per_TF, gr = deriv_per_TF,
               lower = 10 ^ (-16),
               upper = 1 / max(f(reads, alpha, GCcontent)) - 10 ^ (-10),
               method = "L-BFGS-B", reads = reads, alpha = alpha,
@@ -154,7 +186,7 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
 
         q <- temp$par
 
-        temp <- stats::optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
+        temp <- optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
               lower = 10 ^ (-5) + max(0, (reads / (log(q * f0(GCcontent,
                     alpha[2]) + 2) - log(abs(q * f0(GCcontent, alpha[2]) -
                         2))))[q * f0(GCcontent, alpha[2]) > 2]),
@@ -164,7 +196,7 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
         alpha[1] <- temp$par
 
         if (GCcontent[1] != Inf) {
-            temp <- stats::optim(par = alpha[2],
+            temp <- optim(par = alpha[2],
                   fn = total_lik2, gr = total_deriv2,
                   lower = 10 ^ (-5) + max(0, (GCcontent / (log(q *
                       f0(reads, alpha[1]) + 2) - log(abs(q *
@@ -189,14 +221,14 @@ enrich_p <- function(reads, GCcontent, TFbinding.mat,
         no.footprint <- TFbinding.mat[ii, ]
         pp <- q[ii] * f(reads[targetpeak], alpha, GCcontent[targetpeak])
         pvalue.bifet[ii] <- 1 -
-          poibin::ppoibin(kk = sum(no.footprint[targetpeak]) - 1, pp = pp)
+          ppoibin(kk = sum(no.footprint[targetpeak]) - 1, pp = pp)
 
         pick <- sum(no.footprint[backgroundpeak])
         whitepick <- sum(no.footprint[targetpeak]) - 1
         white <- length(targetpeak)
         black <- length(backgroundpeak) - length(targetpeak)
 
-        pvalue.hyper[ii] <- 1 - stats::phyper(whitepick, white, black, pick)
+        pvalue.hyper[ii] <- 1 - phyper(whitepick, white, black, pick)
     }
     res <- cbind(pvalue.bifet, pvalue.hyper)
     rownames(res) <- rownames(TFbinding.mat)

@@ -88,7 +88,7 @@ In this example, TF footprints were called using **PIQ** algorithm
 *(Sherwood, et al., 2014)* using the pooled islet samples and pooled PBMC
 samples to increase the detection power for TF footprints. We used only the
 TF footprints that have a purity score greater than 0.9. The example file
-*PBMC_PIQ.bed* contains footprint calls for only five PWMs from the
+contains footprint calls for only five PWMs from the
 JASPAR database to reduce computing time.
 
 ## 3. Calculating enrichment p-value

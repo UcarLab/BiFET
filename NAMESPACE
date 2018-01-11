@@ -2,3 +2,12 @@
 
 export(bindingTF_per_peak)
 export(calculate_enrich_p)
+importFrom(GenomicRanges,GRangesList)
+importFrom(GenomicRanges,findOverlaps)
+importFrom(poibin,ppoibin)
+importFrom(stats,binomial)
+importFrom(stats,glm)
+importFrom(stats,optim)
+importFrom(stats,phyper)
+importFrom(stats,quantile)
+importFrom(stats,t.test)

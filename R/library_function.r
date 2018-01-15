@@ -78,7 +78,7 @@ calculate_enrich_p <- function(GRpeaks, GRmotif) {
     print(paste("PWM ", i, " out of ",
                 nrow(TFbinding.mat), " PWMs", sep = ""))
     res <- calculate_enrich_p_per_TF(rbind(TFbinding.mat[i, ]),
-                                     reads, GCcontent, targetpeak, backgroundpeak)
+                reads, GCcontent, targetpeak, backgroundpeak)
     q[i] <- res[[1]]
     alpha[i, ] <- res[[2]]
     p.mat[i, ] <- res[[3]]
@@ -155,8 +155,8 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
 
     temp <- optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
                   lower = 10 ^ (-5) + max(0, (reads / (log(q * f0(GCcontent,
-                                                                  alpha[2]) + 2) - log(abs(q * f0(GCcontent, alpha[2]) -
-                                                                                             2))))[q * f0(GCcontent, alpha[2]) > 2]),
+                                 alpha[2]) + 2) - log(abs(q * f0(GCcontent, alpha[2]) -
+                                     2))))[q * f0(GCcontent, alpha[2]) > 2]),
                   upper = Inf, method = "L-BFGS-B", alpha2 = alpha[2], qi = q,
                   reads = reads, GCcontent = GCcontent,
                   TFbinding.mat = TFbinding.mat, control = list(fnscale = -1))
@@ -166,9 +166,9 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
       temp <- optim(par = alpha[2],
                     fn = total_lik2, gr = total_deriv2,
                     lower = 10 ^ (-5) + max(0, (GCcontent / (log(q *
-                                                                   f0(reads, alpha[1]) + 2) - log(abs(q *
-                                                                                                        f0(reads, alpha[1]) - 2))))[q *
-                                                                                                                                      f0(reads, alpha[1]) > 2]),
+                            f0(reads, alpha[1]) + 2) - log(abs(q *
+                            f0(reads, alpha[1]) - 2))))[q *
+                            f0(reads, alpha[1]) > 2]),
                     upper = Inf, method = "L-BFGS-B", alpha1 = alpha[1],
                     qi = q, reads = reads, GCcontent = GCcontent,
                     TFbinding.mat = TFbinding.mat, control = list(fnscale = -1))

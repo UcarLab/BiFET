@@ -7,21 +7,20 @@
   set of peaks correcting for the bias arising from the imbalance of
    GC-content and read counts between target and background set}
 \usage{
-calculate_enrich_p(TFbinding.mat, reads, GCcontent, targetpeak, backgroundpeak)
+calculate_enrich_p(GRpeaks, GRmotif)
 }
 \arguments{
-\item{TFbinding.mat}{A TF binding matrix M outputted from the function
-bindingTF_per_peak where i_th row represents i_th PWM and j_th column
- represetns j_th peak with M_i,j=1 if the footprint of i_th PWM
-  overlaps j_th peak and 0 otherwise}
+\item{GRpeaks}{ATAC-seq or DNase-seq peaks in GRanges class where each row
+represents the location of each peak. In addition there must be
+3 metadata columns called "reads" (representing read counts in each peak),
+"GC" (representing the GC content), and lastly "peaktype" which designates
+each peak as either ("target","background","no").}
 
-\item{reads}{A vector of read counts per peak}
-
-\item{GCcontent}{A vector of GC contents per peak}
-
-\item{targetpeak}{A vector of peak IDs belonging to the target set}
-
-\item{backgroundpeak}{A vector of peak IDs belonging to the background set}
+\item{GRmotif}{Footprint calls from PIQ or CENTIPEDE algorithm in GRanges
+class where each row represents the location of each PWM occurrence and its
+ purity score from the algorithm. The footprint calls in the forward strand
+ and those in the backward strand from the same PWM are not differentiated.
+ The names of GRmotif are the motifs (e.g. MA01371 STAT1).}
 }
 \value{
 Returns a list of parameter alpha_k, p values from BiFET algorithm
@@ -33,25 +32,51 @@ Function to calculate p-value testing if footprints of a TF are
   set of peaks correcting for the bias arising from the imbalance of
    GC-content and read counts between target and background set
 }
+\details{
+In the example, the file input_peak_motif.Rdata was obtained
+as follows: we used ATAC-seq data obtained from five human PBMC
+(Ucar, et al., 2017) and five human islet samples (Khetan, et al., 2017)
+and called peaks using MACS version 2.1.0 (Zhang, et al., 2008) with
+parameters "-nomodel -f BAMPE". The peak sets from all samples were merged
+to generate one consensus peak set (N = 57,108 peaks) by using
+package DiffBind_2.2.5. (Ross-Innes, et al., 2012), where only the peaks
+present at least in any two samples were included in the analysis.
+We used the **summits** option to re-center each peak around the point of
+greatest enrichment and obtained consensus peaks of same width (200bp).
+
+Out of these consensus peaks, we defined regions that are specifically
+accessible in PBMC samples as regions where at least 4 PBMC samples have
+ a peak, whereas none of the islet samples have a peak
+ (n=4106 peaks; these regions are used as target regions in this example).
+Similarly, we defined islet-specific peaks as those that were called as
+a peak in at least 4 islet samples but none in any of the
+PBMC samples (n=12886 peaks). The rest of the peaks excluding the
+PBMC/islet-specific peaks were used as the background
+(i.e., non-specific) peaks in our analyses (n=40116 peaks). For each peak,
+GC content was obtained using peak annotation program
+annotatePeaks.pl from the HOMER software (Heinz. et al., 2010).
+
+In this example, TF footprints were called using PIQ algorithm
+(Sherwood, et al., 2014) using the pooled islet samples and pooled PBMC
+samples to increase the detection power for TF footprints. We used only the
+TF footprints that have a purity score greater than 0.9. The example file
+contains footprint calls for only five PWMs from the
+JASPAR database to reduce computing time.
+}
+\note{
+The function calculate_enrich_p first generates a TF binding
+matrix M where i_th row represents i_th PWM and j_th column represetns j_th
+peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and
+0 otherwise. Finally, the function “calculate_enrich_p” returns a list of
+parameter alpha_k, enrichment p values from BiFET algorithm
+and enrichment p values from the hypergeometric test.
+}
 \examples{
 # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
 peak_file <- system.file("extdata", "input_peak_motif.Rdata",
  package = "BiFET")
 load(peak_file)
-# Generate a TF binding matrix M where i_th row represents
-# i_th PWM and j_th column represetns j_th peak with M_i, j=1
-# if the footprint of i_th PWM overlaps j_th peak and 0 otherwise
-TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
-# Other input parameter values for the function calculate_enrich_p
-targetpeak <- which(GRpeaks$peaktype == "target")
-backgroundpeak <- which(GRpeaks$peaktype == "background")
-reads <- GRpeaks$reads
-GCcontent <- GRpeaks$GC
-result <- calculate_enrich_p(TFbinding.mat, reads,
- GCcontent, targetpeak, backgroundpeak)
-}
-\seealso{
-\code{\link{bindingTF_per_peak}}
+result <- calculate_enrich_p(GRpeaks,GRmotif)
 }
 \author{
 Ahrim Youn

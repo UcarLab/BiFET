@@ -29,12 +29,18 @@ In order to use `BiFET`, the user will need an input file with
  two `GRanges` objects:
 
 * The first object `GRpeaks` represents a matrix of ATAC-seq or DNase-seq
-peaks where each row represents the location, read counts,
-GC content (proportion of G/C) and type (one of “target”,”background”,”no”)
-of the peak. 
+ATAC-seq or DNase-seq peaks in GRanges class where each row
+represents the location of each peak. In addition there must be
+3 metadata columns called "reads" (representing read counts in each peak),
+"GC" (representing the GC content), and lastly "peaktype" which designates
+each peak as either ("target","background","no").
+
 * The second object `GRmotif` represents footprint calls from PIQ or
 CENTIPEDE algorithm in GRanges class where each row represents the location
-of each PWM occurrence and its purity score from the algorithm.     
+of each PWM occurrence and its purity score from the algorithm. The footprint
+calls in the forward strand and those in the backward strand from the same
+PWM are not differentiated. The names of GRmotif are the 
+motifs (e.g. MA01371 STAT1).
 
 ## 1. Obtaining a Peak File
 
@@ -81,7 +87,6 @@ GC content was obtained using peak annotation program
 ```{r, eval=TRUE, echo=TRUE}
 # Display the first few rows and columns of the motif file
 head(GRmotif)
-
 ```
 
 In this example, TF footprints were called using **PIQ** algorithm
@@ -96,37 +101,14 @@ JASPAR database to reduce computing time.
 The function `calculate_enrich_p` calculates p-value testing if footprints
 of a TF are over-represented in the target set of peaks compared to the
 background set of peaks correcting for the bias arising from the imbalance
-of GC-content and read counts between target and background set. The following
-input parameter values are needed for `calculate_enrich_p`.
-
-1. TF binding matrix.
-
-Using the output motif matrix from the above step, we generate a TF binding
-matrix M where i_th row represents i_th PWM and j_th column represetns j_th
-peak with M_i, j=1 if the footprint of i_th PWM overlaps j_th peak and
-0 otherwise. 
+of GC-content and read counts between target and background set. The function
+requires two GRanges objects as input parameters: `GRpeaks` and `GRmotif`.
 
 ```{r, eval=TRUE, echo=TRUE}
-# call function to produce TF binding matrix
-TFbinding.mat <- bindingTF_per_peak(GRpeaks,GRmotif)
-
-# A vector of read counts per peak.
-reads <- GRpeaks$reads 
-
-# A vector of GC contents per peak 
-GCcontent <- GRpeaks$GC
-
-# A vector of peak IDs belonging to the target set
-targetpeak <- which(GRpeaks$peaktype == "target")
-
-# A vector of peak IDs belonging to the background set
-backgroundpeak <- which(GRpeaks$peaktype == "background")
-
-#Finally, the function “calculate_enrich_p” returns a list of 
+# call the function “calculate_enrich_p” to return a list of 
 # parameter alpha_k, enrichment p values from BiFET algorithm 
   # and enrichment p values from the hypergeometric test :
-result <- calculate_enrich_p(TFbinding.mat, reads, GCcontent,
-                             targetpeak, backgroundpeak)
+result <- calculate_enrich_p(GRpeaks, GRmotif)
 head(result)
 ```
 

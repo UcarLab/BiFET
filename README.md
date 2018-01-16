@@ -18,6 +18,12 @@ To install this package, start R and enter:
 
 `biocLite("BiFET")`
 
+Alternatively, this package may be installed via the commands in R:
+
+`library(devtools)`
+
+`install_github('UcarLab/BiFET')`
+
 
 __Tutorial__:
 

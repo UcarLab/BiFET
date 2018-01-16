@@ -125,8 +125,8 @@ associated with clinical outcome in breast cancer.
 Nature 2012;481(7381):389-393.
 
 3. Ucar, D., et al. The chromatin accessibility signature of human immune
-aging stems from CD8+ T cells. Journal of Experimental Medicine 2017:jem.
-20170416.
+aging stems from CD8+ T cells. Journal of 
+Experimental Medicine 2017;jem 20170416.
 
 4. Sherwood, et al. Discovery of Directional and Nondirectional Pioneer
 Transcription Factors by Modeling DNase Profile Magnitude and Shape.
@@ -142,6 +142,3 @@ Genome Biology 9 (2008): R137.
 7. Ross-Innes, et al. Differential Oestrogen Receptor Binding Is Associated
 with Clinical Outcome in Breast Cancer. Nature 481, no. 7381 
 (January 19, 2012): 389–93. 
-
-
-

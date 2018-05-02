@@ -102,16 +102,14 @@ bindingTF_per_peak <- function(GRpeaks, GRmotif) {
 calculate_enrich_p_per_TF <- function(TFbinding.mat, reads,
                                       GCcontent, targetpeak, backgroundpeak) {
   GCbias.cutoff <- 0.05
-  GCcontent.same <- t.test(GCcontent[targetpeak],
-                           GCcontent[backgroundpeak[
-                             !(backgroundpeak %in% targetpeak)]], "greater")$p.value > 0.01
+  
   model <- glm(TFbinding.mat[, backgroundpeak]~reads[backgroundpeak] +
                  GCcontent[backgroundpeak],
                family = binomial(link = "logit"))
   GCcoef <- summary(model)$coef[3, ]
-  if ( !GCcontent.same & GCcoef[1] > 0 & GCcoef[4] < GCbias.cutoff) {
+  if ( GCcoef[1] > 0 & GCcoef[4] < GCbias.cutoff) {
     res <- main_optim(rbind(TFbinding.mat[, backgroundpeak]),
-                      reads[backgroundpeak], GCcontent[backgroundpeak], c(300, 3))
+                      reads[backgroundpeak], GCcontent[backgroundpeak], c(300, 0.05))
     q <- res[[1]]
     alpha <- res[[2]]
     p.mat <- enrich_p(reads, GCcontent, TFbinding.mat,
@@ -120,12 +118,12 @@ calculate_enrich_p_per_TF <- function(TFbinding.mat, reads,
   } else {
     res <- main_optim(rbind(TFbinding.mat[, backgroundpeak]),
                       reads[backgroundpeak],
-                      rep(Inf, length(backgroundpeak)), c(300, 3))
+                      rep(Inf, length(backgroundpeak)), c(300, 0.05))
     q <- res[[1]]
     alpha <- res[[2]]
     p.mat <- enrich_p(reads, rep(Inf, length(GCcontent)),
                       TFbinding.mat, q, alpha, targetpeak, backgroundpeak)
-    alpha[2] <- 10 ^ (-10)
+    alpha[2] <- 10 ^ (-8)
   }
   res <- list(q, alpha, p.mat)
   return(res)
@@ -154,7 +152,7 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
     q <- temp$par
 
     temp <- optim(par = alpha[1], fn = total_lik1, gr = total_deriv1,
-                  lower = 10 ^ (-5) + max(0, (reads / (log(q * f0(GCcontent,
+                  lower = 10 ^ (-8) + max(0, (reads / (log(q * f0(GCcontent,
                                  alpha[2]) + 2) - log(abs(q * f0(GCcontent, alpha[2]) -
                                      2))))[q * f0(GCcontent, alpha[2]) > 2]),
                   upper = Inf, method = "L-BFGS-B", alpha2 = alpha[2], qi = q,
@@ -165,11 +163,8 @@ main_optim <- function(TFbinding.mat, reads, GCcontent, alphainit) {
     if (GCcontent[1] != Inf) {
       temp <- optim(par = alpha[2],
                     fn = total_lik2, gr = total_deriv2,
-                    lower = 10 ^ (-5) + max(0, (GCcontent / (log(q *
-                            f0(reads, alpha[1]) + 2) - log(abs(q *
-                            f0(reads, alpha[1]) - 2))))[q *
-                            f0(reads, alpha[1]) > 2]),
-                    upper = Inf, method = "L-BFGS-B", alpha1 = alpha[1],
+                    lower = 10 ^ (-8),                    
+                    upper = 1.4, method = "L-BFGS-B", alpha1 = alpha[1],
                     qi = q, reads = reads, GCcontent = GCcontent,
                     TFbinding.mat = TFbinding.mat, control = list(fnscale = -1))
       alpha[2] <- temp$par

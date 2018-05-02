@@ -28,8 +28,7 @@ human PBMCs *(Ucar, et al., 2017)* and pancreatic islets
 In order to use `BiFET`, the user will need an input file with
  two `GRanges` objects:
 
-* The first object `GRpeaks` represents a matrix of ATAC-seq or DNase-seq
-ATAC-seq or DNase-seq peaks in GRanges class where each row
+* The first object `GRpeaks` represents a matrix of ATAC-seq or DNase-seq peaks in GRanges class where each row
 represents the location of each peak. In addition there must be
 3 metadata columns called "reads" (representing read counts in each peak),
 "GC" (representing the GC content), and lastly "peaktype" which designates

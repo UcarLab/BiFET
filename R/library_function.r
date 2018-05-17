@@ -89,13 +89,11 @@ calculate_enrich_p <- function(GRpeaks, GRmotif) {
 }
 
 bindingTF_per_peak <- function(GRpeaks, GRmotif) {
-  singles <- split(GRmotif, names(GRmotif))
-  singles <- GRangesList(singles)
-  motifoverlap <- findOverlaps(singles, GRpeaks)
-  allTF <- names(singles)
+  overlaps <- as.matrix(findOverlaps(GRmotif, GRpeaks, minoverlap=2L))  
+  allTF <- unique(names(GRmotif))
   TFbinding.mat <- matrix(0, nrow = length(allTF), ncol = length(GRpeaks))
   rownames(TFbinding.mat) <- allTF
-  TFbinding.mat[as.matrix(motifoverlap)] <- 1
+  TFbinding.mat[cbind(match(names(GRmotif)[overlaps[,1]],allTF),overlaps[,2])] <- 1
   return(TFbinding.mat)
 }
 

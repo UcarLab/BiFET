@@ -23,7 +23,7 @@ target and background regions, where regions represent ATAC-seq or DNAse-seq
 peaks. In this example, we used BiFET to detect TFs associated with
 cell-specific open chromatin regions by analyzing ATAC-seq data from
 human PBMCs *(Ucar, et al., 2017)* and pancreatic islets
-*(Khetan, et al., 2017)*.
+*(Khetan, et al., 2017)*. 
 
 In order to use `BiFET`, the user will need an input file with
  two `GRanges` objects:
@@ -34,12 +34,11 @@ represents the location of each peak. In addition there must be
 "GC" (representing the GC content), and lastly "peaktype" which designates
 each peak as either ("target","background","no").
 
-* The second object `GRmotif` represents footprint calls from PIQ or
-CENTIPEDE algorithm in GRanges class where each row represents the location
-of each PWM occurrence and its purity score from the algorithm. The footprint
+* The second object `GRmotif` represents footprint calls from any footprint algorithms in GRanges class where each row represents the location
+of each PWM occurrence. The footprint
 calls in the forward strand and those in the backward strand from the same
-PWM are not differentiated. The names of GRmotif are the 
-motifs (e.g. MA01371 STAT1).
+PWM are not differentiated. The row names of GRmotif are the 
+motif IDs (e.g. MA01371 STAT1).
 
 ## 1. Obtaining a Peak File
 
@@ -110,10 +109,11 @@ requires two GRanges objects as input parameters: `GRpeaks` and `GRmotif`.
 result <- calculate_enrich_p(GRpeaks, GRmotif)
 head(result)
 ```
-
+## Citing BiFET
+BiFET: A Bias-free Transcription Factor Footprint Enrichment Test, Ahrim Youn, Eladio J Marquez, Nathan Lawlor, Michael L Stitzel, Duygu Ucar, bioRxiv 2018:324277 (https://www.biorxiv.org/content/early/2018/05/16/324277)
 ---
 
-## 4. References
+##  References
 
 1. Khetan, S., et al. Chromatin accessibility profiling uncovers genetic-and
 T2D disease state-associated changes in cis-regulatory element use in human

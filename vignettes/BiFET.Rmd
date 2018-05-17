@@ -110,7 +110,9 @@ result <- calculate_enrich_p(GRpeaks, GRmotif)
 head(result)
 ```
 ## Citing BiFET
+
 BiFET: A Bias-free Transcription Factor Footprint Enrichment Test, Ahrim Youn, Eladio J Marquez, Nathan Lawlor, Michael L Stitzel, Duygu Ucar, bioRxiv 2018:324277 (https://www.biorxiv.org/content/early/2018/05/16/324277)
+
 ---
 
 ##  References

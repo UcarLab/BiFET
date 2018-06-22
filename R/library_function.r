@@ -10,11 +10,11 @@
 #' 3 metadata columns called "reads" (representing read counts in each peak),
 #' "GC" (representing the GC content), and lastly "peaktype" which designates
 #' each peak as either ("target","background","no").
-#' @param GRmotif Footprint calls from PIQ or CENTIPEDE algorithm in GRanges
-#' class where each row represents the location of each PWM occurrence and its
-#'  purity score from the algorithm. The footprint calls in the forward strand
+#' @param GRmotif Footprint calls from a footprint algorithm in GRanges
+#' class where each row represents the location of each PWM occurrence.
+#' The footprint calls in the forward strand
 #'  and those in the backward strand from the same PWM are not differentiated.
-#'  The names of GRmotif are the motifs (e.g. MA01371 STAT1).
+#'  The row names of GRmotif are the motif IDs (e.g. MA01371 STAT1).
 #' @return Returns a list of parameter alpha_k, p values from BiFET algorithm
 #'  and p values from the hypergeometric test
 #' @author Ahrim Youn
@@ -24,7 +24,7 @@
 #' 0 otherwise. Finally, the function “calculate_enrich_p” returns a list of
 #' parameter alpha_k, enrichment p values from BiFET algorithm
 #' and enrichment p values from the hypergeometric test.
-#' @details In the example, the file input_peak_motif.Rdata was obtained
+#' @details In this example, the file input_peak_motif.Rdata was obtained
 #' as follows: we used ATAC-seq data obtained from five human PBMC
 #' (Ucar, et al., 2017) and five human islet samples (Khetan, et al., 2017)
 #' and called peaks using MACS version 2.1.0 (Zhang, et al., 2008) with
@@ -54,7 +54,7 @@
 #' contains footprint calls for only five PWMs from the
 #' JASPAR database to reduce computing time.
 #' @examples
-#' # Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+#' # Load in the peak file and footprint calls from a footprint algorithm
 #' peak_file <- system.file("extdata", "input_peak_motif.Rdata",
 #'  package = "BiFET")
 #' load(peak_file)

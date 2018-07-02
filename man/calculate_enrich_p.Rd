@@ -33,7 +33,7 @@ Function to calculate p-value testing if footprints of a TF are
    GC-content and read counts between target and background set
 }
 \details{
-In the example, the file input_peak_motif.Rdata was obtained
+In this example, the file input_peak_motif.Rdata was obtained
 as follows: we used ATAC-seq data obtained from five human PBMC
 (Ucar, et al., 2017) and five human islet samples (Khetan, et al., 2017)
 and called peaks using MACS version 2.1.0 (Zhang, et al., 2008) with
@@ -72,7 +72,7 @@ parameter alpha_k, enrichment p values from BiFET algorithm
 and enrichment p values from the hypergeometric test.
 }
 \examples{
-# Load in the peak file and footprint calls from PIQ or CENTIPEDE algorithm
+# Load in the peak file and footprint calls from a footprint algorithm
 peak_file <- system.file("extdata", "input_peak_motif.Rdata",
  package = "BiFET")
 load(peak_file)

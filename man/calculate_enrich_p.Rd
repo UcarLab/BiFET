@@ -10,17 +10,17 @@
 calculate_enrich_p(GRpeaks, GRmotif)
 }
 \arguments{
-\item{GRpeaks}{ATAC-seq or DNase-seq peaks in GRanges class where each row
+  \item{GRpeaks}{ATAC-seq or DNase-seq peaks in GRanges class where each row
 represents the location of each peak. In addition there must be
 3 metadata columns called "reads" (representing read counts in each peak),
 "GC" (representing the GC content), and lastly "peaktype" which designates
 each peak as either ("target","background","no").}
 
-\item{GRmotif}{Footprint calls from PIQ or CENTIPEDE algorithm in GRanges
-class where each row represents the location of each PWM occurrence and its
- purity score from the algorithm. The footprint calls in the forward strand
- and those in the backward strand from the same PWM are not differentiated.
- The names of GRmotif are the motifs (e.g. MA01371 STAT1).}
+\item{GRmotif}{Footprint calls from a footprint algorithm in GRanges
+class where each row represents the location of each PWM occurrence.
+The footprint calls in the forward strand
+and those in the backward strand from the same PWM are not differentiated.
+The row names of GRmotif are the motif IDs (e.g. MA01371 STAT1).}
 }
 \value{
 Returns a list of parameter alpha_k, p values from BiFET algorithm

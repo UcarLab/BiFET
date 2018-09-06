@@ -17,7 +17,7 @@ To install this package, start R and enter:
 `if (!requireNamespace("BiocManager", quietly=TRUE))`
     `install.packages("BiocManager")`
 
-`biocLite("BiFET")`
+`BiocManager::install("BiFET")`
 
 Alternatively, this package may be installed via the commands in R:
 

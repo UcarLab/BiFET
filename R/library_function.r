@@ -68,6 +68,7 @@ calculate_enrich_p <- function(GRpeaks, GRmotif) {
   reads <- GRpeaks$reads
   GCcontent <- GRpeaks$GC
   backgroundpeak <- c(targetpeak, backgroundpeak)
+  if(min(reads)==0) reads=reads+1
   upperlimit <- quantile(reads, 0.999)
   reads[reads > upperlimit] <- upperlimit
   q <- rep(NA, nrow(TFbinding.mat))

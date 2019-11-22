@@ -61,7 +61,12 @@
 #' result <- calculate_enrich_p(GRpeaks,GRmotif)
 #' @export
 calculate_enrich_p <- function(GRpeaks, GRmotif) {
-
+  
+  # produce error message if input peak file contains peaks with GC content = 0
+  if (any(GRpeaks$GC == 0)) {
+    stop("Error!: Input peak object contains entries with GC content equal to zero. Please remove these entries prior to using this function")
+  } else {}
+  
   TFbinding.mat <- bindingTF_per_peak(GRpeaks, GRmotif)
   targetpeak <- which(GRpeaks$peaktype == "target")
   backgroundpeak <- which(GRpeaks$peaktype == "background")

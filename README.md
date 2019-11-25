@@ -19,7 +19,7 @@ To install this package, start R and enter:
 
 `BiocManager::install("BiFET")`
 
-Alternatively, this package may be installed via the commands in R:
+Alternatively, the most updated version of this package may be installed via the commands in R:
 
 `library(devtools)`
 
@@ -28,7 +28,8 @@ Alternatively, this package may be installed via the commands in R:
 
 __Tutorial__:
 
-For instructions on how to use BiFET, please see the package vignette.
+For instructions on how to use BiFET, please see the package vignette: 
+https://bioconductor.org/packages/release/bioc/vignettes/BiFET/inst/doc/BiFET.html
 
 __Disclaimer of Warranties and Liabilities__
 

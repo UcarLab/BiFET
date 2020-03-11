@@ -8,7 +8,7 @@ target and background regions, where regions represent ATAC-seq or DNAse-seq pea
 
 __Author__
 
-Ahrim Youn (Ahrim.Youn@jax.org)
+Ahrim Youn
 
 __Installation:__
 
@@ -25,6 +25,9 @@ Alternatively, the most updated version of this package may be installed via the
 
 `install_github('UcarLab/BiFET')`
 
+__Publication__:
+
+For more details about BiFET, please read our publication in _Nucleic Acids Reserarch_: https://www.ncbi.nlm.nih.gov/pubmed/30428075
 
 __Tutorial__:
 

@@ -27,7 +27,7 @@ Alternatively, the most updated version of this package may be installed via the
 
 __Publication__:
 
-For more details about BiFET, please read our publication in _Nucleic Acids Reserarch_: https://www.ncbi.nlm.nih.gov/pubmed/30428075
+For more details about BiFET, please read our publication in _Nucleic Acids Research_: https://www.ncbi.nlm.nih.gov/pubmed/30428075
 
 __Tutorial__:
 
